@@ -5,18 +5,43 @@
 5. Вывести фамилию и имя сотрудника (в одном столбце), его дневную зарплату, округлив ее до 2х знаков после запятой и представив в виде ХХХ руб. ХХ коп.(сделать конкатенацию 2-я способами)
 6. Придумать 2 запроса самостоятельно с числовыми функциями.
 * в таблице employees в столбце salary хранится месячная заработная плата и месяц составляет 20 рабочих дней.*/
-/*SELECT *
-FROM employees*/
 --1
-
---2
-SELECT department_id, first_name
+/*SELECT concat(last_name, ' ', SUBSTRING(first_name, 1, 1), '.') as "name", 
+	salary * 6 AS "half_year_salary"
 FROM employees
-WHERE last_name LIKE 'HUNOLD'  
+WHERE salary * 6 > 50000
+ORDER BY last_name;*/
+--2
+/*SELECT department_id, SUBSTRING(first_name, 2)
+FROM employees
+WHERE UPPER(last_name) = 'HUNOLD';*/
 --3
-
+/*SELECT LOWER(last_name) AS last_name, CAST((salary / 20) * 5 AS INTEGER) AS "5_day_salary"
+FROM employees
+WHERE UPPER(first_name) != 'Steven'
+ORDER BY salary DESC;*/
 --4
-
---5
-
+/*SELECT last_name, first_name, salary * 12 AS salary, ROUND(SQRT(salary)) AS "prize" 
+FROM employees
+WHERE (CHAR_LENGTH(last_name) = 5 OR CHAR_LENGTH(first_name) = 5) 
+			AND CAST(salary/20 AS INTEGER) <= 400;*/
+--5.1
+/*select concat(last_name, ' ', first_name) AS "name", 
+		concat(round(salary / 20, 0), ' руб. ', round(((salary / 20.0) - salary / 20) * 100, 0), ' коп. ') AS "daily_salary"
+FROM employees;*/
+--5.2
+/*select last_name ||' '|| first_name as "name",
+		round(salary / 20, 0) || ' руб. ' || round(((salary / 20.0)-salary / 20) * 100, 0) || ' коп. ' as "daily_salary"
+from employees;*/
 --6
+-- Округление зарплат до разных разрядов
+/*SELECT salary,
+    ROUND(salary, -2) AS rounded_100,      -- до сотен
+    TRUNC(salary, -3) AS truncated_1000,   -- усечение до тысяч
+    CEIL(salary) AS ceil_1000    -- округлить вверх до тысяч
+FROM employees;   */
+-- Вычислить годовую зарплату и найти от этого числа логарифм по основанию 12
+/*SELECT last_name, salary * 12 AS "year_salary", round(log(12, salary*12), 2) AS "log_salary"
+FROM employees
+ORDER BY log_salary;*/
+            
