@@ -1,0 +1,25 @@
+/*Найдите сотрудников (Last_name и First_name в одном столбце) должность, которые в первом месяце отработали меньше 10 дней.
+Выведете Last_name и первую букву First_name (в одном столбце), день найма сотрудника в юлианском формате, отсортируйте по фамилии в обратном порядке
+Вывод Фамилию и телефон через дефис в одном столбце, дату начала работы в виде "1 MAY 1995", количество отработанных им месяцев.
+Вывести сотрудников (имя и фамилию в одном столбце, дату найма), которые отработали более 30 лет, при этом были наняты с 1990 - 1995 года (включительно).
+Вывести в верхнем регистре фамилию и дату найма в одном столбце, во-втором столбце дату приема на работу по формату «Вторник – май» для людей, у кого job_id от 14 до 19 или зарплата от 9 тысяч до 25
+Придумать 2 запроса самостоятельно с использованием функций для работы с датами.*/
+--1
+/*SELECT concat(last_name, ' ', first_name) AS "employee", job_id, 
+FROM employees
+WHERE DATE_PART('day' (DATE_TRUNC('month', hire_date + INTERVAL '1 month') - hire_date)) < 10*/
+--2
+/*SELECT concat(last_name, ' ', SUBSTRING(first_name, 1, 1), '.') AS "name", hire_date
+FROM employees
+ORDER BY last_name DESC;*/
+--3
+/*SELECT last_name || ' - ' || phone_number as "name_phone",
+	TO_CHAR(hire_date, 'DD MONTH YYYY'), (CURRENT_DATE - hire_date)/20 AS "month"
+FROM employees;*/
+--4
+SELECT first_name || ' ' || last_name, hire_date
+from employees
+where ((CURRENT_DATE - hire_date) / 365) > 30 AND hire_date BETWEEN '1990-01-01' AND '1995-12-31';
+--5
+
+--6
