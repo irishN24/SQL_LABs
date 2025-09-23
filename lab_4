@@ -1,0 +1,34 @@
+/*Вывести среднюю зарплату по каждому департаменту и сам департамент, в котором число сотрудников больше 5, отсортируйте по убыванию средней заработной плате.
+Вывести количество сотрудников, которые были трудоустроены после 1990 года, сгруппировав их по должностям.
+Вывести для каждого отдела: информацию о сотрудниках через запятую,в виде фамилия// job_id//salary// в одном столбце, минимальную, максимальную зарплату и среднюю зарплату в других столбцах.
+Вывести количество сотрудников менеджера, средняя зарплата которых находится в диапазоне от 3000 до 7000, отсортировать этот столбец по возрастанию
+Для каждого отдела вывести "department_id-количество сотрудников" в одном столбце, если средняя зарплата сотрудников этого отдела (второй столбец) менее 6000, вывести всех сотрудников в третьем столбце.
+Придумать 2 запроса с агрегацией данных самостоятельно.*/
+--1
+SELECT department_id, ROUND(AVG(salary), 2) AS "avg_salary"
+FROM employees
+GROUP BY department_id
+HAVING COUNT(employee_id) > 5
+ORDER BY avg_salary DESC;
+--2
+SELECT COUNT(employee_id)
+FROM employees
+WHERE EXTRACT(YEAR FROM hire_date) > 1990
+GROUP BY job_id;
+--3
+SELECT STRING_AGG(last_name || '//' || job_id || '//' || salary,'//') AS employee_info,
+    MIN(salary) AS min_salary,
+    MAX(salary) AS max_salary,
+    ROUND(AVG(salary), 2) AS avg_salary
+FROM
+    employees
+GROUP BY
+    department_id;
+--4
+SELECT manager_id,
+    COUNT(employee_id) AS employee_count,
+    ROUND(AVG(salary), 2) AS avg_salary
+FROM employees
+GROUP BY manager_id
+HAVING AVG(salary) BETWEEN 3000 AND 7000
+ORDER BY avg_salary
