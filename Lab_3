@@ -30,3 +30,6 @@ FROM employees;*/
 /*SELECT last_name, first_name, (CURRENT_DATE - hire_date)/365 AS "years", (((CURRENT_DATE - hire_date)/365) - 8)*1000 AS prize
 FROM employees
 WHERE ((CURRENT_DATE - hire_date)/365) >= 8;*/
+/* день недели 15 декабря года, в коотый нанят сотрудник*/
+SELECT hire_date, TO_CHAR(DATE(CONCAT(EXTRACT(YEAR FROM hire_date), '-12-15')), 'Day') AS "day_15-12"
+FROM employees;
