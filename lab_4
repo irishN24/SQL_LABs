@@ -20,10 +20,9 @@ SELECT STRING_AGG(last_name || '//' || job_id || '//' || salary,'//') AS employe
     MIN(salary) AS min_salary,
     MAX(salary) AS max_salary,
     ROUND(AVG(salary), 2) AS avg_salary
-FROM
-    employees
-GROUP BY
-    department_id;
+FROM employees
+GROUP BY department_id
+HAVING MIN(salary) > 5000 AND MAX(salary) < 10000
 --4
 SELECT manager_id,
     COUNT(employee_id) AS employee_count,
