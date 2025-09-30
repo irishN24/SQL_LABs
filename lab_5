@@ -12,7 +12,11 @@
 Придумайте самостоятельно запрос, в двух вариантах с соединением в разделе WHERE и в разделе FROM (итого 2 запроса). Запросы должны быть основаны минимум на 3-х таблицах и включать различные условия.
 Придумайте самостоятельно запрос с Right и Left Join одновременно. Запросы должны быть основаны минимум на 3-х таблицах и включать различные условия.*/
 --1
-SELECT d.department_name, COUNT(e.emloyee_id) AS count_employees, ROUND(AVG(e.salary), 2) AS avg_salary
+SELECT d.department_name, COUNT(e.employee_id) AS count_employees, ROUND(AVG(e.salary), 2) AS avg_salary
 FROM departments d LEFT JOIN employees e ON e.department_id = d.department_id
-GROUP BY departments.department_name
-HAVING AVG(employees.salary) > 10000
+GROUP BY d.department_name
+HAVING AVG(e.salary) > 10000
+--2
+SELECT e.last_name, e.first_name, j.job_title, e.hire_date, e.phone_number
+FROM employees e LEFT JOIN jobs j ON j.job_id = e.job_id
+WHERE e.phone_number IS NULL
