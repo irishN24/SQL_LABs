@@ -72,26 +72,21 @@ FROM departments d LEFT JOIN employees e ON d.department_id = e.department_id
 				   LEFT JOIN regions r ON c.region_id = r.region_id
 GROUP BY d.department_id, d.department_name, r.region_name
 --11
-SELECT 
-    e.first_name || ' ' || e.last_name AS сотрудник,
-    d.department_name AS отдел,
-    j.job_title AS должность,
-    e.salary AS зарплата,
-    l.city AS город,
-    c.country_name AS страна
-FROM employees e, departments d, jobs j, locations l, countries c
-WHERE e.department_id = d.department_id
-    AND e.job_id = j.job_id
-    AND d.location_id = l.location_id
-    AND l.country_id = c.country_id
-    AND e.salary > 10000
-    AND j.max_salary >= 15000
-    AND c.country_name IN ('United States of America', 'United Kingdom')
-    AND EXTRACT(YEAR FROM e.hire_date) BETWEEN 1995 AND 2000
-ORDER BY e.salary DESC, сотрудник;
---Вывести имя, фамилию сотрудников из отдела Shipping и их город, которые 
+--Вывести имя, фамилию сотрудников из отдела Shipping и их город, которые находятся в South San Francisco или Toronto или Southlake 
 SELECT e.first_name, e.last_name, d.department_name, l.city
 FROM employees e, departments d, locations l
 WHERE e.department_id = d.department_id AND d.location_id = l.location_id
     AND d.department_name = 'Shipping'
-    AND locations.city IN ()'Seatle' OR locations.city = 'Oxford' OR locations.city = 'Toronto')
+    AND l.city IN ('South San Francisco', 'Toronto', 'Southlake')
+--
+SELECT e.first_name, e.last_name, d.department_name, l.city
+FROM employees e JOIN departments d ON e.department_id = d.department_id
+				 JOIN locations l ON d.location_id = l.location_id
+WHERE d.department_name = 'Shipping'
+    	AND l.city IN ('South San Francisco', 'Toronto', 'Southlake')
+--12
+SELECT e.first_name, e.last_name, e.salary, d.department_name, l.city
+FROM employees e LEFT JOIN departments d ON e.department_id = d.department_id
+				 RIGHT JOIN locations l ON d.location_id = l.location_id
+WHERE e.salary > 10000 AND d.department_name LIKE 'S%'
+ORDER BY e.salary DESC;
