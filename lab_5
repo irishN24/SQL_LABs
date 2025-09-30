@@ -37,3 +37,61 @@ FROM department d LEFT JOIN locations l ON d.location_id = l.location_id
 				LEFT JOIN employees e ON d.department_id = e.department_id
 				LEFT JOIN dependents dep ON e.employee_id = dep.employee_id AND dep.relationship = 'Child'
 GROUP BY d.department_id, d.department_name, l.city
+--6
+SELECT e.first_name, e.last_name, d.department_name, l.city, r.region_name
+FROM employees e LEFT JOIN departments d ON d.department_id = e.department_id
+				 LEFT JOIN locations l ON l.location_id = d.location_id
+				 LEFT JOIN countries c ON c.country_id = l.country_id
+				 LEFT JOIN regions r ON r.region_id = c.region_id 
+ORDER BY e.last_name
+--7
+SELECT e.first_name || ' ' || e.last_name AS full_name, e.salary, d.department_name
+FROM employees e RIGHT JOIN departments d ON e.department_id = d.department_id
+    			 LEFT JOIN locations l ON l.location_id = d.location_id
+WHERE l.state_province = 'Washington'
+--8
+SELECT r.region_name
+FROM regions r LEFT JOIN countries c ON c.region_id = r.region_id 
+			   LEFT JOIN locations l ON l.country_id = c.country_id
+			   LEFT JOIN departments d ON d.location_id = l.location_id
+GROUP BY r.region_name
+HAVING COUNT(department_id) = 0
+--9
+SELECT e.first_name || ' ' || e.last_name AS full_name, d.department_name, l.city, r.region_name 
+FROM employees e LEFT JOIN departments d ON e.department_id = d.department_id
+				 LEFT JOIN locations l ON d.location_id = l.location_id
+				 LEFT JOIN countries c ON l.country_id = c.country_id
+				 LEFT JOIN regions r ON c.region_id = r.region_id
+WHERE e.last_name LIKE '%o%'
+--10
+SELECT d.department_id, d.department_name, r.region_name, MAX(e.salary) AS max_salary,
+    STRING_AGG(e.last_name ||' ' || SUBSTRING(e.first_name, 1, 1) || '.', ', ') AS employee_names
+FROM departments d LEFT JOIN employees e ON d.department_id = e.department_id
+				   LEFT JOIN locations l ON d.location_id = l.location_id
+				   LEFT JOIN countries c ON l.country_id = c.country_id
+				   LEFT JOIN regions r ON c.region_id = r.region_id
+GROUP BY d.department_id, d.department_name, r.region_name
+--11
+SELECT 
+    e.first_name || ' ' || e.last_name AS сотрудник,
+    d.department_name AS отдел,
+    j.job_title AS должность,
+    e.salary AS зарплата,
+    l.city AS город,
+    c.country_name AS страна
+FROM employees e, departments d, jobs j, locations l, countries c
+WHERE e.department_id = d.department_id
+    AND e.job_id = j.job_id
+    AND d.location_id = l.location_id
+    AND l.country_id = c.country_id
+    AND e.salary > 10000
+    AND j.max_salary >= 15000
+    AND c.country_name IN ('United States of America', 'United Kingdom')
+    AND EXTRACT(YEAR FROM e.hire_date) BETWEEN 1995 AND 2000
+ORDER BY e.salary DESC, сотрудник;
+--Вывести имя, фамилию сотрудников из отдела Shipping и их город, которые 
+SELECT e.first_name, e.last_name, d.department_name, l.city
+FROM employees e, departments d, locations l
+WHERE e.department_id = d.department_id AND d.location_id = l.location_id
+    AND d.department_name = 'Shipping'
+    AND locations.city IN ()'Seatle' OR locations.city = 'Oxford' OR locations.city = 'Toronto')
