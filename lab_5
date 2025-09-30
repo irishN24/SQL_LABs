@@ -20,3 +20,20 @@ HAVING AVG(e.salary) > 10000
 SELECT e.last_name, e.first_name, j.job_title, e.hire_date, e.phone_number
 FROM employees e LEFT JOIN jobs j ON j.job_id = e.job_id
 WHERE e.phone_number IS NULL
+--3
+SELECT e.employee_id, j.job_title
+FROM employees e JOIN jobs j ON j.job_id = e.job_id JOIN departments d ON d.department_id = e.department_id
+WHERE d.department_name = 'IT' AND e.salary > 5000
+--4
+SELECT d.department_id, l.city, c.country_name, COUNT(e.employee_id)
+FROM departments d LEFT JOIN locations l ON d.location_id = l.location_id 
+				   LEFT JOIN countries c ON l.country_id = c.country_id
+				   LEFT JOIN employees e ON d.department_id = e.department_id
+GROUP BY c.country_name, d.department_id, l.city, d.department_name
+HAVING COUNT(e.employee_id) >= 2
+--5
+SELECT d.department_name, l.city, COUNT(DISTINCT e.employee_id) AS count_employees, COUNT(dep.dependent_id) AS count_kids
+FROM department d LEFT JOIN locations l ON d.location_id = l.location_id
+				LEFT JOIN employees e ON d.department_id = e.department_id
+				LEFT JOIN dependents dep ON e.employee_id = dep.employee_id AND dep.relationship = 'Child'
+GROUP BY d.department_id, d.department_name, l.city
