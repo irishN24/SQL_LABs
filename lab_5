@@ -1,7 +1,6 @@
-/*Напишите запрос для отображения названия отдела и количества сотрудников в каждом из отделов 
-	и средней заработной платой в отделе, где средняя ЗП больше 10000 (можете подобрать другое число).
-Напишите запрос для отображения полного имени (имени и фамилии), названия должности, даты начала для тех сотрудников, у которых не указан номер телефона. 
-Напишите запрос для отображения идентификатора сотрудника, названия должности, в отделе с названием IT, у которых заработная плата более 5000.
+/*
+
+
 Напишите запрос для вывода всех отделов, в которых работают минимум 2 сотрудника, страну и город этих отделов, даже если они пустые.
 Напишите запрос, чтобы отобразить название отдела и город, кол-во сотрудников этого отдела и кол-во детей всех сотрудников этого отдела. Внимательнее: у некоторых сотрудников нет детей.
 Для каждого сотрудника укажите полное имя, название отдела, город и регион. Отсортируйте по Фамилии сотрудника в обратном порядке.
@@ -22,7 +21,7 @@ FROM employees e LEFT JOIN jobs j ON j.job_id = e.job_id
 WHERE e.phone_number IS NULL
 --3
 SELECT e.employee_id, j.job_title
-FROM employees e JOIN jobs j ON j.job_id = e.job_id JOIN departments d ON d.department_id = e.department_id
+FROM employees e LEFT JOIN jobs j ON j.job_id = e.job_id JOIN departments d ON d.department_id = e.department_id
 WHERE d.department_name = 'IT' AND e.salary > 5000
 --4
 SELECT d.department_id, l.city, c.country_name, COUNT(e.employee_id)
@@ -90,3 +89,11 @@ FROM employees e LEFT JOIN departments d ON e.department_id = d.department_id
 				 RIGHT JOIN locations l ON d.location_id = l.location_id
 WHERE e.salary > 10000 AND d.department_name LIKE 'S%'
 ORDER BY e.salary DESC;
+--защита вывести все регионы, список отделов в этих регионах через запятую и ср зарплату по региону
+SELECT r.region_name, 
+	STRING_AGG(DISTINCT d.department_name, ', ') AS department_name, ROUND(AVG(e.salary), 2) AS avg_salary
+FROM regions r LEFT JOIN countries c ON r.region_id = c.region_id
+				   LEFT JOIN locations l ON c.country_id = l.country_id
+				   LEFT JOIN  departments d ON l.location_id = d.location_id
+				   LEFT JOIN employees e ON d.department_id = e.department_id
+GROUP BY r.region_id, r.region_name
