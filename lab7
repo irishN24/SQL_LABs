@@ -5,7 +5,8 @@
 а также разница между максимальной зарплатой по его должности и зарплатой этого сотрудника, при условии,
 что эта не равна разница равна нулю.
 Вывести сотрудников, у которых стаж работы больше среднего стажа в их из отделе.
-Все имя и фамилию менеджера в одном столбце, суммарную плату его подчиненных. Отсортировать по убыванию средней заработной платы. Реализовать 2 способами, один из которых с помощью коррелированного подзапроса, второй нет.
+Все имя и фамилию менеджера в одном столбце, суммарную плату его подчиненных. Отсортировать по убыванию средней заработной платы. 
+Реализовать 2 способами, один из которых с помощью коррелированного подзапроса, второй нет.
 Придумать запрос с многостолбцовым подзапросом.*/
 --1
 SELECT d.department_name, ROUND(avg(e.salary), 2) AS avg_salary
@@ -26,5 +27,31 @@ WHERE s.max_salary - e.salary != 0
 SELECT e.employee_id
 FROM employees e JOIN (SELECT department_id, AVG(CURRENT_DATE - HIRE_DATE) AS avg_work_record
 					   FROM employees
-					   GROUP BY department_id) AS avg_deparment ON e.department_id = avg_department.department_id
+					   GROUP BY department_id) AS avg_department ON e.department_id = avg_department.department_id
 WHERE (CURRENT_DATE - e.hire_date) > avg_department.avg_work_record
+--5.1 коррелированный
+SELECT m.first_name || ' ' || m.last_name AS name_manager, SUM(e.salary) AS total_salary
+FROM employees e JOIN employees m ON e.manager_id = m.employee_id
+GROUP BY m.employee_id, m.first_name, m.last_name
+HAVING 
+     (SELECT AVG(e2.salary)
+     FROM employees e2
+     WHERE e2.manager_id  = m.employee_id) IS NOT NULL
+ORDER BY 
+	 (SELECT AVG(e2.salary)
+     FROM employees e2
+     WHERE e2.manager_id = m.employee_id) DESC
+--5.2 некоррелированный
+SELECT m.first_name || ' ' || m.last_name AS name_manager, e.salary_sum
+FROM employees m JOIN (SELECT SUM(e.salary) AS salary_sum, AVG(e.salary) AS avg_salary, e.manager_id
+        FROM employees e
+        GROUP BY e.manager_id) E ON E.manager_id = m.employee_id
+ORDER BY E.avg_salary DESC
+--6 Найти сотрудников с максимальной зарплатой в каждом департаменте
+SELECT e.first_name, e.last_name, e.department_id, e.salary
+FROM employees e
+WHERE (e.department_id, e.salary) IN (SELECT department_id, MAX(salary)
+    								  FROM employees
+    								  WHERE department_id IS NOT NULL
+    								  GROUP BY department_id)
+ORDER BY e.department_id;
