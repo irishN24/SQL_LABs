@@ -1,0 +1,30 @@
+/*Возвратите отделы и среднюю зарплату для каждого отдела, где средняя зарплата для отдела меньше, 
+чем средняя зарплата для всех сотрудников.
+Вернуть имена, наименование отдела для сотрудников, получающих ту же зарплату, что и «Alexander»
+Вывести id сотрудника, его имя, фамилию, должность, зарплата, максимальная зарплата по его должности, 
+а также разница между максимальной зарплатой по его должности и зарплатой этого сотрудника, при условии,
+что эта не равна разница равна нулю.
+Вывести сотрудников, у которых стаж работы больше среднего стажа в их из отделе.
+Все имя и фамилию менеджера в одном столбце, суммарную плату его подчиненных. Отсортировать по убыванию средней заработной платы. Реализовать 2 способами, один из которых с помощью коррелированного подзапроса, второй нет.
+Придумать запрос с многостолбцовым подзапросом.*/
+--1
+SELECT d.department_name, ROUND(avg(e.salary), 2) AS avg_salary
+FROM departments d LEFT JOIN employees e ON e.department_id = d.department_id
+GROUP BY d.department_name
+HAVING AVG(e.salary) < (SELECT AVG(salary) FROM employees)
+--2
+SELECT e.first_name, d.department_name
+FROM departments d LEFT JOIN employees e ON e.department_id = d.department_id
+WHERE e.salary IN (SELECT salary FROM employees WHERE first_name = 'Alexander')
+--3
+SELECT e.employee_id, e.first_name, e.last_name, j.job_title, e.salary, s.max_salary
+FROM employees e LEFT JOIN jobs j ON j.job_id = e.job_id
+			   LEFT JOIN (SELECT job_id, MAX(salary) AS max_salary FROM employees GROUP BY job_id) AS s 
+			   ON s.job_id = e.job_id
+WHERE s.max_salary - e.salary != 0
+--4
+SELECT e.employee_id
+FROM employees e JOIN (SELECT department_id, AVG(CURRENT_DATE - HIRE_DATE) AS avg_work_record
+					   FROM employees
+					   GROUP BY department_id) AS avg_deparment ON e.department_id = avg_department.department_id
+WHERE (CURRENT_DATE - e.hire_date) > avg_department.avg_work_record
