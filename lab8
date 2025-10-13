@@ -1,0 +1,48 @@
+/*1)Вывести все сотрудников (Last_name F. - departmetn_name), у которых есть 2 вышестоящих руководителя. Добавить столбец, в котором перечислены эти руководители через запятую.
+2)Подсчитайте количество подчиненных (всех уровней) для каждого сотрудника, начиная с главного менеджера. 
+При этом отсортировать по кол-ву подчиненных от большего к меньшему и вывести только первых 7 сотрудников, у кого кол-во подчинённых больше 1.
+3)Придумайте свой запрос с рекурсией.*/
+--1
+WITH RECURSIVE Managers AS(
+	SELECT e.employee_id, e.manager_id, 
+		e.last_name || ' ' || SUBSTRING(e.first_name, 1, 1) || '. - ' || d.department_name AS employee_name,
+		m.last_name || ' ' || SUBSTRING(m.first_name, 1, 1) || '.' AS manager_name, 
+		1 AS level
+	FROM employees e JOIN employees m ON e.manager_id = m.employee_id
+				JOIN departments d ON d.department_id = e.department_id
+	UNION ALL
+	SELECT mh.employee_id, m2.manager_id, mh.employee_name,
+		mh.manager_name || ', ' || M3.LAST_NAME || ' ' ||  SUBSTRING(m3.first_name, 1, 1) || '.' AS manager_name,
+        mh.level + 1 AS level
+    FROM Managers mh JOIN employees m2 ON mh.manager_id = m2.employee_id
+					JOIN employees m3 ON m3.manager_id = m2.employee_id
+    WHERE mh.level = 1
+)
+SELECT employee_name, manager_name
+FROM Managers
+WHERE level = 2
+--2
+WITH RECURSIVE employee_hierarchy AS (
+    -- Базовый случай: сотрудники без менеджеров (главные менеджеры)
+    SELECT e.employee_id, e.manager_id,
+        1 AS level,      
+    FROM employees e
+    WHERE e.manager_id IS NOT NULL
+    
+    UNION ALL
+    
+    -- Рекурсивный случай: подчиненные
+    SELECT e.employee_id, eh.manager_id,
+        eh.level + 1,
+    FROM employees e JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id
+)
+SELECT m.employee_id, m.last_name || ' ' || m.first_name AS manager_name,
+	COUNT(sh.employee_id) AS count_subordinates
+FROM employee_hierarchy sh JOIN employees m ON m.employee_id = sh.manager_id
+GROUP BY m.employee_id, m.last_name, m.first_name
+HAVING COUNT(sh.employee_id) > 1
+ORDER BY count_subordinates DESC
+LIMIT 7;
+
+
+--3
