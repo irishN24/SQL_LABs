@@ -20,12 +20,12 @@ WITH RECURSIVE Managers AS(
 )
 SELECT employee_name, manager_name
 FROM Managers
-WHERE level = 2
+WHERE level = 2;
 --2
 WITH RECURSIVE employee_hierarchy AS (
     -- Базовый случай: сотрудники без менеджеров (главные менеджеры)
     SELECT e.employee_id, e.manager_id,
-        1 AS level,      
+        1 AS level      
     FROM employees e
     WHERE e.manager_id IS NOT NULL
     
@@ -33,7 +33,7 @@ WITH RECURSIVE employee_hierarchy AS (
     
     -- Рекурсивный случай: подчиненные
     SELECT e.employee_id, eh.manager_id,
-        eh.level + 1,
+        eh.level + 1
     FROM employees e JOIN employee_hierarchy eh ON e.manager_id = eh.employee_id
 )
 SELECT m.employee_id, m.last_name || ' ' || m.first_name AS manager_name,
@@ -43,6 +43,21 @@ GROUP BY m.employee_id, m.last_name, m.first_name
 HAVING COUNT(sh.employee_id) > 1
 ORDER BY count_subordinates DESC
 LIMIT 7;
-
-
 --3
+WITH RECURSIVE week_calendar AS (
+    SELECT 
+        CURRENT_DATE AS day_date,
+        1 AS day_number
+    
+    UNION ALL
+    
+    SELECT 
+        day_date + 1,
+        day_number + 1
+    FROM week_calendar
+    WHERE day_number < 7
+)
+SELECT 
+    day_date AS дата,
+    TO_CHAR(day_date, 'Day') AS день_недели
+FROM week_calendar;
