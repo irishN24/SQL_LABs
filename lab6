@@ -1,0 +1,72 @@
+/*DDL
+ Создайте 2-3 таблицы из вашего ИДЗ (курсовая работа)  со всеми типами ограничений  (ограничения должны быть созданы как на уровне столбца, так и на уровне таблицы) и значением по умолчанию.
+Измените структуру таблицы (измените столбец, добавьте ограничение FK )
+Удалить столбцы и таблицу.
+
+Ограничения
+NOT NULL ++
+UNIQUE
+PRIMARY KEY
+FOREIGN KEY
+CHECK
+DML
+В созданные таблицы вставить данные.
+Изменить данные, используя условия.
+Удалить данные, используя условия.*/
+CREATE TABLE Character_info
+(
+  ID INT NOT NULL,
+  Name CHAR(15) NOT NULL,
+  Rarity INT NOT NULL,
+  ID_last_location INT NOT NULL,
+  ID_element INT NOT NULL,
+  ID_weapon INT,
+  PRIMARY KEY (ID),
+  FOREIGN KEY (ID_last_location) REFERENCES Location(ID_last_location),
+  FOREIGN KEY (ID_element) REFERENCES Elements(ID_element),
+  FOREIGN KEY (ID_weapon) REFERENCES Weapon_info(ID_weapon)
+);
+INSERT INTO Character_info VALUES (1, 'Дэхья', 5, 1, 1, 1);
+INSERT INTO Character_info VALUES (2, 'Флинс', 5, 3, 2, 15);
+INSERT INTO Character_info VALUES (3, '', 4, 2, 6, 5);
+INSERT INTO Character_info VALUES (4, '', 5, 4, 7);
+INSERT INTO Character_info VALUES (5, '', 4, 3, );
+INSERT INTO Character_info VALUES (6, '', 4, );
+
+
+
+CREATE TABLE Location(
+  ID INT NOT NULL,
+  Name_region VARCHAR(20) NOT NULL,
+  Region VARCHAR(20) NOT NULL,
+  constraint LOCATION_ID_pk primary key (id)
+);
+INSERT INTO Location VALUES (1, 'Риф Маска', 'Мондштадт');
+INSERT INTO Location VALUES (2, 'Яшмовый лес', 'Ли Юэ');
+INSERT INTO Location VALUES (3, 'Петрикор', 'Фонтейн');
+INSERT INTO Location VALUES (4, 'Каннадзука', 'Инадзума');
+
+CREATE TABLE Elements
+(
+  ID INT NOT NULL,
+  Name VARCHAR(20) NOT NULL constraint bands_tl_uk unique,
+  constraint Elements_ID_pk primary key (id)
+);
+INSERT INTO Elements VALUES (1, 'Pyro');
+INSERT INTO Elements VALUES (2, 'Cryo');
+INSERT INTO Elements VALUES (3, 'Electro');
+INSERT INTO Elements VALUES (4, 'Anemo');
+INSERT INTO Elements VALUES (5, 'Dendro');
+INSERT INTO Elements VALUES (6, 'Gydro');
+INSERT INTO Elements VALUES (7, 'Geo');
+CREATE TABLE Weapon_info
+(
+  ID INT NOT NULL,
+  Name VARHAR(20) NOT NULL,
+  Type VARCHAR(20) NOT NULL,
+  Rarity INT NOT NULL,
+  Main_characteristic VARCHAR(20) NOT NULL,
+  Main_value INT NOT NULL,
+  Level INT NOT NULL,
+  PRIMARY KEY (ID)
+);
