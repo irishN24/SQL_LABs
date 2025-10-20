@@ -5,52 +5,45 @@
 
 Ограничения
 NOT NULL ++
-UNIQUE
-PRIMARY KEY
+UNIQUE ++
+PRIMARY KEY ++ 
 FOREIGN KEY
 CHECK
 DML
 В созданные таблицы вставить данные.
 Изменить данные, используя условия.
 Удалить данные, используя условия.*/
-CREATE TABLE Character_info
-(
-  ID INT NOT NULL,
-  Name CHAR(15) NOT NULL,
-  Rarity INT NOT NULL,
-  ID_last_location INT NOT NULL,
-  ID_element INT NOT NULL,
-  ID_weapon INT,
-  PRIMARY KEY (ID),
-  FOREIGN KEY (ID_last_location) REFERENCES Location(ID_last_location),
-  FOREIGN KEY (ID_element) REFERENCES Elements(ID_element),
-  FOREIGN KEY (ID_weapon) REFERENCES Weapon_info(ID_weapon)
-);
-INSERT INTO Character_info VALUES (1, 'Дэхья', 5, 1, 1, 1);
-INSERT INTO Character_info VALUES (2, 'Флинс', 5, 3, 2, 15);
-INSERT INTO Character_info VALUES (3, '', 4, 2, 6, 5);
-INSERT INTO Character_info VALUES (4, '', 5, 4, 7);
-INSERT INTO Character_info VALUES (5, '', 4, 3, );
-INSERT INTO Character_info VALUES (6, '', 4, );
-
 
 
 CREATE TABLE Location(
-  ID INT NOT NULL,
-  Name_region VARCHAR(20) NOT NULL,
-  Region VARCHAR(20) NOT NULL,
-  constraint LOCATION_ID_pk primary key (id)
+  ID INT,
+  Name_region VARCHAR(100) NOT NULL,
+  Region VARCHAR(100) NOT NULL,
+  constraint LOCATION_ID_pk primary key (id),
+  CONSTRAINT location_name_region_uk UNIQUE(name_region)
 );
 INSERT INTO Location VALUES (1, 'Риф Маска', 'Мондштадт');
 INSERT INTO Location VALUES (2, 'Яшмовый лес', 'Ли Юэ');
 INSERT INTO Location VALUES (3, 'Петрикор', 'Фонтейн');
 INSERT INTO Location VALUES (4, 'Каннадзука', 'Инадзума');
+INSERT INTO location VALUES (5, 'Порт-Ормос', 'Сумеру');
+
+--ограничение UNIQUE 
+INSERT INTO elements VALUES (8, 'cnsdljbvkzs');
+DELETE FROM elements WHERE ID = 8;
+
+--удаление таблиц
+DROP TABLE elements;
+DROP TABLE location;
+DROP TABLE weapon_info;
+--
 
 CREATE TABLE Elements
 (
-  ID INT NOT NULL,
-  Name VARCHAR(20) NOT NULL constraint bands_tl_uk unique,
-  constraint Elements_ID_pk primary key (id)
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  constraint Elements_ID_pk primary key (id), 
+  constraint elements_name_uk unique(NAME)
 );
 INSERT INTO Elements VALUES (1, 'Pyro');
 INSERT INTO Elements VALUES (2, 'Cryo');
@@ -59,14 +52,52 @@ INSERT INTO Elements VALUES (4, 'Anemo');
 INSERT INTO Elements VALUES (5, 'Dendro');
 INSERT INTO Elements VALUES (6, 'Gydro');
 INSERT INTO Elements VALUES (7, 'Geo');
+
+--ограничение Primary Key
+--нарушение уникальности:
+INSERT INTO Elements VALUES (1, 'Пиро');--сменить на уникальный id
+--Ключ - NULL
+INSERT INTO Elements VALUES (NULL, 'Quant'); --убрать NULL
+
+
+CREATE TABLE Character_info
+(
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  Rarity INT NOT NULL,
+  ID_last_location INT NOT NULL,
+  ID_element INT NOT NULL,
+  CONSTRAINT character_info_id_pk PRIMARY KEY (ID), 
+  CONSTRAINT character_info_name_uk UNIQUE(Name),
+  FOREIGN KEY (ID_last_location) REFERENCES Location(ID_last_location),
+  FOREIGN KEY (ID_element) REFERENCES Elements(ID_element)
+  --FOREIGN KEY (ID_weapon) REFERENCES Weapon_info(ID_weapon)
+);
+INSERT INTO Character_info VALUES (1, 'Дэхья', 5, 1, 1);
+INSERT INTO Character_info VALUES (2, 'Флинс', 5, 3, 2);
+INSERT INTO Character_info VALUES (3, 'Син Цю', 4, 2, 6);
+INSERT INTO Character_info VALUES (4, 'Чжун Ли', 5, 4, 7);
+INSERT INTO Character_info VALUES (5, 'Сахароза', 4, 3, 4);
+INSERT INTO Character_info VALUES (6, 'Барбара', 4, 5, 6);
+
 CREATE TABLE Weapon_info
 (
-  ID INT NOT NULL,
-  Name VARHAR(20) NOT NULL,
-  Type VARCHAR(20) NOT NULL,
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  Type VARCHAR(100) NOT NULL,
   Rarity INT NOT NULL,
-  Main_characteristic VARCHAR(20) NOT NULL,
+  Main_characteristic VARCHAR(100) NOT NULL,
   Main_value INT NOT NULL,
   Level INT NOT NULL,
-  PRIMARY KEY (ID)
+  CONSTRAINT Weapon_info_id_pk PRIMARY KEY (ID)
 );
+INSERT INTO Weapon_info VALUES(1, 'Тупой меч', 'меч', 1, 'базовая атака', 185, 1);
+INSERT INTO Weapon_info VALUES(2, 'Лук опытного охотника', 'лук', 2, 'базовая атака', 243, 1);
+INSERT INTO Weapon_info VALUES(3, 'Меч из белого железа', 'двуручный меч', 3, 'Процент от защиты', 43.9, 86);
+INSERT INTO Weapon_info VALUES(4, 'Песнь необъятной лазури', 'катализатор', 4, 'Восст. энергии в %', 19.9, 38);
+INSERT INTO Weapon_info VALUES(5, 'Посох Хомы', 'копьё', 5, 'Крит. урон в %', 42.9, 45);
+
+SELECT * FROM elements;
+SELECT * FROM location;
+SELECT * FROM weapon_info;
+
