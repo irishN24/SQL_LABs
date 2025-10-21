@@ -119,11 +119,6 @@ INSERT INTO Character_info VALUES (8, 'Арлекино', 5, 99, 1, 5);
 --ограничение check
 INSERT INTO character_artifact VALUES(1, 2, 35);
 
-
-
-
-
-
 -- добавление столбца
 ALTER TABLE character_info ADD ch_level INT;
 --удаление стролбцов
