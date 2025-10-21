@@ -1,19 +1,20 @@
 /*DDL
- Создайте 2-3 таблицы из вашего ИДЗ (курсовая работа)  со всеми типами ограничений  (ограничения должны быть созданы как на уровне столбца, так и на уровне таблицы) и значением по умолчанию.
+ Создайте 2-3 таблицы из вашего ИДЗ (курсовая работа)  со всеми типами ограничений (ограничения должны быть созданы как на уровне столбца, так и на уровне таблицы) и значением по умолчанию.
 Измените структуру таблицы (измените столбец, добавьте ограничение FK )
 Удалить столбцы и таблицу.
 
-Ограничения
-NOT NULL ++
-UNIQUE ++
-PRIMARY KEY ++ 
-FOREIGN KEY
-CHECK
 DML
-В созданные таблицы вставить данные.
+В созданные таблицы вставить данные. ++
 Изменить данные, используя условия.
 Удалить данные, используя условия.*/
 
+--удаление таблиц
+DROP TABLE character_info CASCADE;
+DROP TABLE elements;
+DROP TABLE location;
+DROP TABLE weapon_info;
+DROP TABLE artifact CASCADE;
+DROP TABLE character_artifact;
 
 CREATE TABLE Location(
   ID INT,
@@ -27,16 +28,6 @@ INSERT INTO Location VALUES (2, 'Яшмовый лес', 'Ли Юэ');
 INSERT INTO Location VALUES (3, 'Петрикор', 'Фонтейн');
 INSERT INTO Location VALUES (4, 'Каннадзука', 'Инадзума');
 INSERT INTO location VALUES (5, 'Порт-Ормос', 'Сумеру');
-
---ограничение UNIQUE 
-INSERT INTO elements VALUES (8, 'cnsdljbvkzs');
-DELETE FROM elements WHERE ID = 8;
-
---удаление таблиц
-DROP TABLE elements;
-DROP TABLE location;
-DROP TABLE weapon_info;
---
 
 CREATE TABLE Elements
 (
@@ -53,33 +44,6 @@ INSERT INTO Elements VALUES (5, 'Dendro');
 INSERT INTO Elements VALUES (6, 'Gydro');
 INSERT INTO Elements VALUES (7, 'Geo');
 
---ограничение Primary Key
---нарушение уникальности:
-INSERT INTO Elements VALUES (1, 'Пиро');--сменить на уникальный id
---Ключ - NULL
-INSERT INTO Elements VALUES (NULL, 'Quant'); --убрать NULL
-
-
-CREATE TABLE Character_info
-(
-  ID INT,
-  Name VARCHAR(100) NOT NULL,
-  Rarity INT NOT NULL,
-  ID_last_location INT NOT NULL,
-  ID_element INT NOT NULL,
-  CONSTRAINT character_info_id_pk PRIMARY KEY (ID), 
-  CONSTRAINT character_info_name_uk UNIQUE(Name),
-  FOREIGN KEY (ID_last_location) REFERENCES Location(ID_last_location),
-  FOREIGN KEY (ID_element) REFERENCES Elements(ID_element)
-  --FOREIGN KEY (ID_weapon) REFERENCES Weapon_info(ID_weapon)
-);
-INSERT INTO Character_info VALUES (1, 'Дэхья', 5, 1, 1);
-INSERT INTO Character_info VALUES (2, 'Флинс', 5, 3, 2);
-INSERT INTO Character_info VALUES (3, 'Син Цю', 4, 2, 6);
-INSERT INTO Character_info VALUES (4, 'Чжун Ли', 5, 4, 7);
-INSERT INTO Character_info VALUES (5, 'Сахароза', 4, 3, 4);
-INSERT INTO Character_info VALUES (6, 'Барбара', 4, 5, 6);
-
 CREATE TABLE Weapon_info
 (
   ID INT,
@@ -87,7 +51,7 @@ CREATE TABLE Weapon_info
   Type VARCHAR(100) NOT NULL,
   Rarity INT NOT NULL,
   Main_characteristic VARCHAR(100) NOT NULL,
-  Main_value INT NOT NULL,
+  Main_value REAL NOT NULL,
   Level INT NOT NULL,
   CONSTRAINT Weapon_info_id_pk PRIMARY KEY (ID)
 );
@@ -97,7 +61,87 @@ INSERT INTO Weapon_info VALUES(3, 'Меч из белого железа', 'дв
 INSERT INTO Weapon_info VALUES(4, 'Песнь необъятной лазури', 'катализатор', 4, 'Восст. энергии в %', 19.9, 38);
 INSERT INTO Weapon_info VALUES(5, 'Посох Хомы', 'копьё', 5, 'Крит. урон в %', 42.9, 45);
 
+CREATE TABLE Artifact(
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  main_characteristic VARCHAR(100) NOT NULL,
+  main_value INT NOT NULL,
+  CONSTRAINT Artifact_id_pk PRIMARY KEY(ID)
+);
+INSERT INTO artifact VALUES (1, 'Обрезанное перо', 'сила атаки', 25);
+
+CREATE TABLE Character_artifact(
+  ID_artifact INT,
+  ID_character INT,
+  level_artifact INT, 
+  CONSTRAINT character_art_id_art_fk FOREIGN KEY (ID_artifact) REFERENCES Artifact(ID),
+  CONSTRAINT character_art_id_ch_fk FOREIGN KEY (ID_character) REFERENCES character_info(id),
+  CONSTRAINT ch_art_level CHECK ((level_artifact >= 0) AND (level_artifact <= 20))
+);
+
+CREATE TABLE Character_info
+(
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  Rarity INT NOT NULL,
+  ID_last_location INT NOT NULL,
+  ID_element INT NOT NULL,
+  ID_weapon INT,
+  CONSTRAINT character_info_id_pk PRIMARY KEY (ID), 
+  CONSTRAINT character_info_name_uk UNIQUE(Name),
+  CONSTRAINT ch_inf_last_loc_fk FOREIGN KEY (ID_last_location) REFERENCES Location(ID),
+  CONSTRAINT ch_inf_elem_fk FOREIGN KEY (ID_element) REFERENCES Elements(ID),
+  CONSTRAINT ch_inf_weapon_fk FOREIGN KEY (ID_weapon) REFERENCES Weapon_info(ID)
+);
+INSERT INTO Character_info VALUES (1, 'Дэхья', 5, 1, 1, 3);
+INSERT INTO Character_info VALUES (2, 'Флинс', 5, 3, 2, 5);
+INSERT INTO Character_info VALUES (3, 'Син Цю', 4, 2, 6);
+INSERT INTO Character_info VALUES (4, 'Чжун Ли', 5, 4, 7, 2);
+INSERT INTO Character_info VALUES (5, 'Сахароза', 4, 3, 4, 1);
+INSERT INTO Character_info VALUES (6, 'Барбара', 4, 5, 6, 4);
+
+--ограничение not null 
+INSERT INTO Character_info VALUES (7, NULL, 5, 1, 1, 1);
+
+--ограничение UNIQUE 
+INSERT INTO elements VALUES (8, 'Pyro');
+
+--ограничение Primary Key
+--нарушение уникальности:
+INSERT INTO Elements VALUES (1, 'QUANT');
+--Ключ - NULL
+INSERT INTO Elements VALUES (NULL, 'Quant');
+
+--ограничение Foreign key
+--НЕ СУЩЕСТВУЕТ элемент В РОДИТЕЛЬСКОЙ ТАБЛИЦЕ
+INSERT INTO Character_info VALUES (8, 'Арлекино', 5, 99, 1, 5); 
+
+--ограничение check
+INSERT INTO character_artifact VALUES(1, 2, 35);
+
+
+
+
+
+
+-- добавление столбца
+ALTER TABLE character_info ADD ch_level INT;
+--удаление стролбцов
+ALTER TABLE weapon_info DROP COLUMN level;
+ALTER TABLE character_info DROP COLUMN ch_level;
+--изменение существующего столбца
+ALTER TABLE weapon_info MODIFY main_value INT;
+
+--Изменить данные, используя условия.
+UPDATE weapon_info SET Main_value = Main_value * 2
+WHERE Rarity <= 3;
+
+--Удалить данные используя условия
+DELETE FROM character_info WHERE id_last_location = 3;
+--селекты
 SELECT * FROM elements;
 SELECT * FROM location;
 SELECT * FROM weapon_info;
-
+SELECT * FROM character_info;
+SELECT * FROM character_artifact;
+SELECT * FROM artifact;
