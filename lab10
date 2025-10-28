@@ -1,0 +1,320 @@
+/*DDL
+ Создайте 2-3 таблицы из вашего ИДЗ (курсовая работа)  со всеми типами ограничений (ограничения должны быть созданы как на уровне столбца, так и на уровне таблицы) и значением по умолчанию.
+Измените структуру таблицы (измените столбец, добавьте ограничение FK )
+Удалить столбцы и таблицу.
+
+DML
+В созданные таблицы вставить данные. ++
+Изменить данные, используя условия.
+Удалить данные, используя условия.*/
+/*Индексы:
+
+
+Представления: 
+Создайте 2 представления, основанных на таблицах (более чем 3 таблицы) по теме вашей индивидуальной работы.  Данные должны быть внесены в исходные таблицы.
+Измените представление, например имя.
+Удалите представление.*/
+
+--удаление таблиц
+DROP TABLE character_info CASCADE;
+DROP TABLE elements;
+DROP TABLE location CASCADE;
+DROP TABLE weapon_info;
+DROP TABLE artifact CASCADE;
+DROP TABLE character_artifact;
+
+--В 2х таблицах с искусственным ID в качестве первичного уникальный создайте  индекс для исключения дублирования данных. 
+--индекс, исключающий дублирование данных
+CREATE UNIQUE INDEX location_region_uk ON Location(Name_region);
+INSERT INTO Location VALUES (6, 'Риф Маска', 'Энканомия');
+
+CREATE UNIQUE INDEX character_info_name_uk ON Character_info(Name);
+INSERT INTO Character_info VALUES (7, 'Дэхья', 5, 2, 2, 4);
+
+--Создайте 2 неуникальных индекса для ускорения поиска данных, как минимум один из них должны быть составным.
+
+-- Составной индекс для Weapon_info (тип + редкость)
+CREATE INDEX weapon_type_rarity_idx ON Weapon_info(Type, Rarity);
+--найти кол-во оружия типа катилизатор по редкости
+SELECT Type, Rarity, COUNT(*), ROUND(AVG(Main_value))
+FROM Weapon_info
+WHERE type = 'катализатор'
+GROUP BY Type, Rarity;
+
+CREATE INDEX character_rarity_idx ON Character_info(Rarity);
+
+SELECT Rarity, COUNT(*) 
+FROM Character_info 
+GROUP BY Rarity;
+
+--Создайте 1 индекс для внешнего ключа.
+-- Индекс для внешнего ключа ID_character в Character_artifact
+CREATE INDEX character_artifact_character_id_idx ON Character_artifact(ID_character);
+
+SELECT a.Name, a.main_characteristic, ca.level_artifact
+FROM Character_artifact ca JOIN Artifact a ON ca.ID_artifact = a.ID
+WHERE ca.ID_character = 2;
+
+--Удалите индексы.
+-- Удаление неуникальных индексов
+DROP INDEX IF EXISTS weapon_type_rarity_idx;
+DROP INDEX IF EXISTS character_rarity_idx;
+DROP INDEX IF EXISTS character_artifact_character_id_idx;
+
+-- Удаление уникальных индексов
+DROP INDEX IF EXISTS location_region_uk;
+DROP INDEX IF EXISTS character_info_name_uk;
+
+--представление 1 
+CREATE OR REPLACE VIEW character_full_info AS
+SELECT ci.Name AS character_name, ci.Rarity, 
+	e.Name AS element,
+    l.Name_region AS last_location, l.Region, 
+    wi.Name AS name_weapon, wi.Type AS type_weapon, wi.Rarity AS rarity_weapon, wi.Main_characteristic AS main_stat_weapon,
+    wi.Main_value AS weapon_main_value
+FROM Character_info ci JOIN Elements e ON ci.ID_element = e.ID 
+				JOIN Location l ON ci.ID_last_location = l.ID
+				LEFT JOIN Weapon_info wi ON ci.ID_weapon = wi.ID
+ORDER BY ci.Rarity DESC, ci.Name;
+
+SELECT * FROM character_complete_overview;
+ALTER VIEW character_full_info RENAME TO character_complete_overview;
+DROP VIEW character_complete_overview;
+
+--представление 2
+CREATE OR REPLACE VIEW character_build_details AS
+SELECT ci.Name AS character_name, ci.Rarity,
+    e.Name AS element,
+    wi.Name AS equipped_weapon, 
+    wi.Main_characteristic AS weapon_main_stat, 
+    wi.main_value AS value_weapon,
+    STRING_AGG(a.Name || ' (' || a.main_characteristic || ' - ур. ' || ca.level_artifact || ') - ' || A.main_value,  ', ' 
+        ORDER BY ca.level_artifact DESC, a.Name) AS artifacts,  
+    -- Общая сила персонажа (оружие + все артефакты)
+    ROUND(COALESCE(wi.main_value, 0) * 0.01 + SUM(COALESCE(ca.level_artifact, 0)) * 0.1 + SUM(COALESCE(a.main_value, 0)) * 0.01)
+    AS total_power_score
+FROM Character_info ci JOIN Elements e ON ci.ID_element = e.ID
+	LEFT JOIN Weapon_info wi ON ci.ID_weapon = wi.ID
+	LEFT JOIN Character_artifact ca ON ci.ID = ca.ID_character
+	LEFT JOIN Artifact a ON ca.ID_artifact = a.ID
+WHERE ci.ID IS NOT NULL
+GROUP BY ci.ID, ci.Name, ci.Rarity, e.Name, wi.Name, wi.Main_characteristic, wi.main_value
+ORDER BY total_power_score DESC, ci.Rarity DESC, character_name;
+
+SELECT * from character_build_details;
+DROP VIEW character_build_details;
+
+--
+SELECT name 
+FROM character_info ci JOIN character_artifact ca ON ci.id = ca.id_character
+GROUP BY ci.name
+HAVING COUNT(id_character) = 5;
+
+SELECT ROUND(AVG(level_artifact), 2)
+FROM Character_artifact
+WHERE ID_character = 10;
+--
+CREATE TABLE Location(
+  ID INT,
+  Name_region VARCHAR(100) NOT NULL,
+  Region VARCHAR(100) NOT NULL,
+  constraint LOCATION_ID_pk primary key (id)
+  --CONSTRAINT location_name_region_uk UNIQUE(name_region)
+);
+INSERT INTO Location VALUES (1, 'Риф Маска', 'Мондштадт');
+INSERT INTO Location VALUES (2, 'Яшмовый лес', 'Ли Юэ');
+INSERT INTO Location VALUES (3, 'Петрикор', 'Фонтейн');
+INSERT INTO Location VALUES (4, 'Каннадзука', 'Инадзума');
+INSERT INTO location VALUES (5, 'Порт-Ормос', 'Сумеру');
+
+
+CREATE TABLE Elements
+(
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  constraint Elements_ID_pk primary key (id), 
+  constraint elements_name_uk unique(NAME)
+);
+INSERT INTO Elements VALUES (1, 'Pyro');
+INSERT INTO Elements VALUES (2, 'Cryo');
+INSERT INTO Elements VALUES (3, 'Electro');
+INSERT INTO Elements VALUES (4, 'Anemo');
+INSERT INTO Elements VALUES (5, 'Dendro');
+INSERT INTO Elements VALUES (6, 'Gydro');
+INSERT INTO Elements VALUES (7, 'Geo');
+
+CREATE TABLE Weapon_info
+(
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  Type VARCHAR(100) NOT NULL,
+  Rarity INT NOT NULL,
+  Main_characteristic VARCHAR(100) NOT NULL,
+  Main_value REAL NOT NULL,
+  Level INT NOT NULL,
+  CONSTRAINT Weapon_info_id_pk PRIMARY KEY (ID)
+);
+INSERT INTO Weapon_info VALUES(1, 'Тупой меч', 'меч', 1, 'базовая атака', 185, 1);
+INSERT INTO Weapon_info VALUES(2, 'Лук опытного охотника', 'стрелковое', 2, 'базовая атака', 243, 1);
+INSERT INTO Weapon_info VALUES(3, 'Меч из белого железа', 'двуручный меч', 3, 'Процент от защиты', 43.9, 86);
+INSERT INTO Weapon_info VALUES(4, 'Песнь необъятной лазури', 'катализатор', 4, 'Восст. энергии в %', 19.9, 38);
+INSERT INTO Weapon_info VALUES(5, 'Посох Хомы', 'копьё', 5, 'Крит. урон в %', 42.9, 45);
+INSERT INTO Weapon_info VALUES(6, 'Шкатулка истин', 'катализатор', 5, 'Крит. урон в %', 33.9, 20);
+INSERT INTO Weapon_info VALUES(7, 'Фонарь чёрной сердцевины', 'катализатор', 4, 'мастерство стихий', 221, 90);
+INSERT INTO Weapon_info VALUES(8, 'Мастер-ключ', 'двуручный меч', 4, 'Восст. энергии в %', 39.7, 55);
+INSERT INTO Weapon_info VALUES(9, 'Разбивающий цепи', 'стрелковое', 4, 'Сила атаки в %', 22.7, 73);
+INSERT INTO Weapon_info VALUES(10, 'Обряд вечного течения', 'катализатор', 5, 'Крит. урон в %', 33.9, 26);
+
+CREATE TABLE Artifact(
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  main_characteristic VARCHAR(100) NOT NULL,
+  main_value INT NOT NULL,
+  id_type int NOT NULL,
+  ID_set int NOT NULL,
+  CONSTRAINT Artifact_id_pk PRIMARY KEY(ID)
+  CONSTRAINT artifact_id_type_fk FOREIGN KEY(id_type) REFERENCES type_arifact(id),
+  CONSTRAINT artifact_id_set_fk FOREIGN KEY(ID_set) REFERENCES artifact_set(id),
+);
+INSERT INTO artifact VALUES (1, 'Обрезанное перо', 'сила атаки', 25, 2, 1);
+INSERT INTO artifact VALUES (2, 'Цветок почестей', 'HP', 4780, 1, 7);
+INSERT INTO artifact VALUES (3, 'Боевое перо командира', 'Сила атаки', 311, 2, 7);
+INSERT INTO artifact VALUES (4, 'Золотые часы', 'HP %', 46.6, 3, 7); 
+INSERT INTO artifact VALUES (5, 'Древний шлем генерала', 'HP %', 46.6, 5, 7); 
+INSERT INTO artifact VALUES (6, 'Золотой кубок клятвы', 'Бонус Гео урона %', 46.6, 4, 7);
+
+INSERT INTO artifact VALUES (7, 'Рассвет ансабля', 'HP', 4780, 1, 4);
+INSERT INTO artifact VALUES (8, 'Угасающий пир', 'Сила атаки', 311, 2, 4);
+INSERT INTO artifact VALUES (9, 'Фляжка странника', 'HP %', 46.6, 4, 4);
+INSERT INTO artifact VALUES (10, 'Триумф гладиатора', 'Мастерство стихий', 187, 5, 4);
+INSERT INTO artifact VALUES (11, 'Застывшее мгновение', 'Мастерство стихий', 187, 3, 4);
+
+INSERT INTO artifact VALUES (12, 'Королевский цветок', 'HP', 2342, );
+INSERT INTO artifact VALUES (13, 'Превосходная чаша', 'Сила атаки %', 7.0);
+INSERT INTO artifact VALUES (14, 'Триумф гладиатора', 'Сила атаки %', 7.0);
+INSERT INTO artifact VALUES (15, 'Королевское перо', 'Сила атаки', 311);
+
+INSERT INTO artifact VALUES (16, 'Цветок жажды познания', 'HP', 717, 1, 9); 
+INSERT INTO artifact VALUES (17, 'Перо несмываемого греха', 'Сила атаки', 47, 2, 9);
+INSERT INTO artifact VALUES (18, 'Священная корона верующей', 'Шанс крит.попадания %', 4.7);
+
+CREATE TABLE type_arifact(
+  ID INT,
+  Name_type VARCHAR(100),
+  CONSTRAINT type_art_id_pk PRIMARY KEY(ID)
+)
+INSERT INTO type_arifact VALUES(1, 'Цветок жизни'), (2, 'Перо смерти'), (3, 'Пески времени'), 
+	(4, 'Кубок пространства'), (5, 'Корона разума')
+
+CREATE TABLE artifact_set(
+  ID INT,
+  NAME_SET VARCHAR(100),
+  bonus_2 INT,
+  bonus_4 INT,
+  CONSTRAINT art_set_id_pk PRIMARY KEY(ID)
+)
+INSERT INTO artifact_set VALUES (1, 'Искатель приключений', 1000, 30),
+(2, 'Берсерк' ,12 , 24),
+(3, 'Конец Гладиатора', 18, 35),
+(4, 'Странствующий ансамбль', 80, 35),
+(5, 'Церемония древней знати', 20, 20),
+(6, 'Громогласный рёв ярости', 15, 40),
+(7, 'Стойскость миллелита', 20, 30),
+(8, 'Цветок потерянного рая', 80, 65),
+(9, 'Ночь открытия неба', 80, 55)
+
+CREATE TABLE Character_artifact(
+  ID_artifact INT,
+  ID_character INT,
+  level_artifact INT, 
+  CONSTRAINT character_art_id_art_fk FOREIGN KEY (ID_artifact) REFERENCES Artifact(ID),
+  CONSTRAINT character_art_id_ch_fk FOREIGN KEY (ID_character) REFERENCES character_info(id),
+  CONSTRAINT ch_art_level CHECK ((level_artifact >= 0) AND (level_artifact <= 20))
+);
+INSERT INTO character_artifact VALUES(2, 4, 20);
+INSERT INTO character_artifact VALUES(3, 4, 20);
+INSERT INTO character_artifact VALUES(4, 4, 20);
+INSERT INTO character_artifact VALUES(5, 4, 20);
+INSERT INTO character_artifact VALUES(6, 4, 20);
+INSERT INTO character_artifact VALUES(7, 11, 20);
+INSERT INTO character_artifact VALUES(8, 11, 20);
+INSERT INTO character_artifact VALUES(9, 11, 20);
+INSERT INTO character_artifact VALUES(10, 11, 20);
+INSERT INTO character_artifact VALUES(11, 11, 20);
+INSERT INTO character_artifact VALUES(12, 10, 8);
+INSERT INTO character_artifact VALUES(13, 10, 0);
+INSERT INTO character_artifact VALUES(14, 10, 0);
+INSERT INTO character_artifact VALUES(15, 10, 20);
+INSERT INTO character_artifact VALUES(16, 2, 0);
+INSERT INTO character_artifact VALUES(17, 2, 0);
+INSERT INTO character_artifact VALUES(18, 2, 0);
+
+
+CREATE TABLE Character_info
+(
+  ID INT,
+  Name VARCHAR(100) NOT NULL,
+  Rarity INT NOT NULL,
+  ID_last_location INT NOT NULL,
+  ID_element INT NOT NULL,
+  ID_weapon INT,
+  CONSTRAINT character_info_id_pk PRIMARY KEY (ID), 
+  --CONSTRAINT character_info_name_uk UNIQUE(Name),
+  CONSTRAINT ch_inf_last_loc_fk FOREIGN KEY (ID_last_location) REFERENCES Location(ID),
+  CONSTRAINT ch_inf_elem_fk FOREIGN KEY (ID_element) REFERENCES Elements(ID),
+  CONSTRAINT ch_inf_weapon_fk FOREIGN KEY (ID_weapon) REFERENCES Weapon_info(ID)
+);
+INSERT INTO Character_info VALUES (1, 'Дэхья', 5, 1, 1, 8);
+INSERT INTO Character_info VALUES (2, 'Флинс', 5, 3, 2, 5);
+INSERT INTO Character_info VALUES (3, 'Син Цю', 4, 2, 1);
+INSERT INTO Character_info VALUES (4, 'Чжун Ли', 5, 4, 7, 5);
+INSERT INTO Character_info VALUES (5, 'Сахароза', 4, 3, 4, 4);
+INSERT INTO Character_info VALUES (6, 'Барбара', 4, 5, 6, 4);
+INSERT INTO Character_info VALUES (7, 'Нефер', 5, 3, 5, 6);
+INSERT INTO Character_info VALUES (8, 'Тиори', 5, 4, 7, 1);
+INSERT INTO Character_info VALUES (9, 'Лайла', 4, 2, 2, 1);
+INSERT INTO Character_info VALUES (10, 'Беннет', 4, 2, 1, 1);
+INSERT INTO Character_info VALUES (11, 'Синобу', 4, 1, 3, 1);
+
+
+
+--ограничение not null 
+INSERT INTO Character_info VALUES (7, NULL, 5, 1, 1, 1);
+
+--ограничение UNIQUE 
+INSERT INTO elements VALUES (8, 'Pyro');
+
+--ограничение Primary Key
+--нарушение уникальности:
+INSERT INTO Elements VALUES (1, 'QUANT');
+--Ключ - NULL
+INSERT INTO Elements VALUES (NULL, 'Quant');
+
+--ограничение Foreign key
+--НЕ СУЩЕСТВУЕТ элемент В РОДИТЕЛЬСКОЙ ТАБЛИЦЕ
+INSERT INTO Character_info VALUES (8, 'Арлекино', 5, 99, 1, 5); 
+
+--ограничение check
+INSERT INTO character_artifact VALUES(1, 2, 35);
+
+-- добавление столбца
+ALTER TABLE character_info ADD ch_level INT;
+--удаление стролбцов
+ALTER TABLE weapon_info DROP COLUMN level;
+ALTER TABLE character_info DROP COLUMN ch_level;
+--изменение существующего столбца
+ALTER TABLE weapon_info MODIFY main_value INT;
+
+--Изменить данные, используя условия.
+UPDATE weapon_info SET Main_value = Main_value * 2
+WHERE Rarity <= 3;
+
+--Удалить данные используя условия
+DELETE FROM character_info WHERE id_last_location = 3;
+--селекты
+SELECT * FROM elements;
+SELECT * FROM location;
+SELECT * FROM weapon_info;
+SELECT * FROM character_info;
+SELECT * FROM character_artifact;
+SELECT * FROM artifact;
